@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>bio / sh4rpy</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;900&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Raleway', sans-serif;
+            font-weight: 400;
+            color: #eee;
+            background-color: #101010;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ===== ГРАДИЕНТНАЯ ПОЛОСКА ===== */
+        .divide {
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(to right, #1e5799 0%, #f300ff 50%, #e0ff00 100%);
+            border-bottom: 1px solid #000;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* ===== ФОН С ДОЖДЁМ (CANVAS) ===== */
+        #rain-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* ===== КОНТЕЙНЕР (ПОВЕРХ ДОЖДЯ) ===== */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            text-align: center;
+            flex: 1;
+            position: relative;
+            z-index: 5;
+        }
+
+        .logo {
+            font-size: 52pt;
+            font-weight: 900;
+            color: #eee;
+            margin-bottom: 5px;
+        }
+
+        .logo span {
+            color: #00BFFF;
+        }
+
+        .subtitle {
+            font-size: 14pt;
+            color: #888;
+            margin-bottom: 40px;
+            letter-spacing: 2px;
+        }
+
+        .avatar-wrapper {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 25px;
+        }
+
+        .avatar-img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 2px solid #3a3a3a;
+            object-fit: cover;
+            transition: all 0.3s ease;
+        }
+
+        .avatar-img:hover {
+            border-color: #00BFFF;
+            transform: scale(1.05);
+        }
+
+        .name {
+            font-size: 28pt;
+            font-weight: 900;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+
+        .tag {
+            color: #00BFFF;
+            font-size: 12pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+        }
+
+        .bio-text {
+            color: #aaa;
+            font-size: 12pt;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            max-width: 450px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* ===== АУДИОПЛЕЕР ===== */
+        audio {
+            width: 100%;
+            max-width: 400px;
+            background: #1a1a1a;
+            border: 1px solid #3a3a3a;
+            border-radius: 8px;
+            outline: none;
+            margin: 0 auto;
+            display: block;
+        }
+
+        audio::-webkit-media-controls-panel {
+            background: #1a1a1a;
+            border-radius: 8px;
+        }
+
+        audio::-webkit-media-controls-play-button {
+            background-color: #00BFFF;
+            border-radius: 50%;
+            color: #000;
+        }
+
+        audio::-webkit-media-controls-current-time-display,
+        audio::-webkit-media-controls-time-remaining-display {
+            color: #eee;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .social-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: #1a1a1a;
+            border: 1px solid #3a3a3a;
+            border-radius: 8px;
+            color: #eee;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 11pt;
+            transition: all 0.3s ease;
+        }
+
+        .social-btn:hover {
+            border-color: #00BFFF;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 191, 255, 0.15);
+        }
+
+        .social-btn i {
+            font-size: 14pt;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 30px 0;
+            color: #666;
+            font-size: 10pt;
+            position: relative;
+            z-index: 5;
+        }
+
+        @media (max-width: 500px) {
+            .logo { font-size: 36pt; }
+            .name { font-size: 22pt; }
+            .social-btn { padding: 8px 14px; font-size: 10pt; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Градиентная полоска -->
+    <div class="divide"></div>
+
+    <!-- Canvas для дождя -->
+    <canvas id="rain-canvas"></canvas>
+
+    <div class="container">
+        
+        <div class="logo">sh4r<span>py</span></div>
+        <div class="subtitle">/ bio</div>
+
+        <div class="avatar-wrapper">
+            <!-- Замени путь на свою аватарку -->
+            <img src="img/avatar.jpg" alt="sh4rpy" class="avatar-img">
+        </div>
+
+        <div class="name">sh4rpy</div>
+        <div class="tag">✦ разработчик / энтузиаст</div>
+
+        <div class="bio-text">
+            Привет! Меня зовут sh4rpy. 
+            Я занимаюсь разработкой, люблю тёмные темы и качественный код. 
+            Этот сайт — моё небольшое пространство в интернете.
+        </div>
+
+        <!-- Аудиоплеер с твоей песней -->
+        <div class="music-player" style="margin: 20px 0;">
+            <audio controls loop>
+                <!-- Замени путь на свой трек -->
+                <source src="music/track.mp3" type="audio/mpeg">
+                Ваш браузер не поддерживает аудио.
+            </audio>
+        </div>
+
+        <div class="social-links">
+            <!-- Замени ссылки на свои -->
+            <a href="https://github.com/твой-ник" target="_blank" class="social-btn">
+                <span style="font-weight: 900;"></span> GitHub
+            </a>
+            <a href="https://t.me/твой-ник" target="_blank" class="social-btn">
+                <span style="font-weight: 900;">✈</span> Telegram
+            </a>
+            <a href="https://discord.com/users/твой-id" target="_blank" class="social-btn">
+                <span style="font-weight: 900;">✦</span> Discord
+            </a>
+            <a href="mailto:твой-email@gmail.com" class="social-btn">
+                <span style="font-weight: 900;">✉</span> Email
+            </a>
+        </div>
+
+    </div>
+
+    <div class="footer">
+        &copy; 2026 · sh4rpy
+    </div>
+
+    <!-- ===== СКРИПТ ДОЖДЯ ===== -->
+    <script>
+        const canvas = document.getElementById('rain-canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Размеры canvas
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Массив капель
+        const drops = [];
+        const NUM_DROPS = 150;
+
+        for (let i = 0; i < NUM_DROPS; i++) {
+            drops.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                speed: 4 + Math.random() * 6,
+                length: 10 + Math.random() * 15,
+                opacity: 0.3 + Math.random() * 0.4
+            });
+        }
+
+        function drawRain() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.strokeStyle = 'rgba(200, 200, 255, 0.6)';
+            ctx.lineWidth = 1;
+
+            for (let drop of drops) {
+                ctx.beginPath();
+                ctx.moveTo(drop.x, drop.y);
+                ctx.lineTo(drop.x - 2, drop.y + drop.length);
+                ctx.stroke();
+                
+                // Двигаем каплю вниз
+                drop.y += drop.speed;
+                
+                // Если капля ушла за экран — возвращаем наверх
+                if (drop.y > canvas.height) {
+                    drop.y = -20;
+                    drop.x = Math.random() * canvas.width;
+                }
+            }
+
+            requestAnimationFrame(drawRain);
+        }
+
+        drawRain();
+
+        // Перерисовка при изменении размера окна
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+
+</body>
+</html>
