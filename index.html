@@ -59,10 +59,16 @@
             font-weight: 900;
             color: #eee;
             margin-bottom: 5px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
         }
 
         .logo span {
             color: #00BFFF;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
         }
 
         .subtitle {
@@ -178,6 +184,52 @@
             font-size: 14pt;
         }
 
+        .clock {
+            color: #666;
+            font-size: 10pt;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .typing-container {
+            margin-bottom: 25px;
+            min-height: 40px;
+        }
+
+        .typing-text {
+            font-size: 18pt;
+            font-weight: 900;
+            color: #00BFFF;
+            display: inline-block;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 2px;
+            background-color: #00BFFF;
+            animation: blink 1s infinite;
+            margin-left: 2px;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .easter-egg {
+            display: none;
+            margin-top: 20px;
+            color: #00BFFF;
+            font-size: 14pt;
+            font-weight: 900;
+            animation: glow 1.5s infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 5px #00BFFF; }
+            to { text-shadow: 0 0 20px #00BFFF, 0 0 30px #00BFFF; }
+        }
+
         .footer {
             text-align: center;
             padding: 30px 0;
@@ -202,7 +254,7 @@
 
     <div class="container">
         
-        <div class="logo">sh4r<span>py</span></div>
+        <div class="logo" onclick="activateEasterEgg()">sh4r<span>py</span></div>
         <div class="subtitle">/ bio</div>
 
         <div class="avatar-wrapper">
@@ -211,6 +263,11 @@
 
         <div class="name">sh4rpy</div>
         <div class="tag">✦ разработчик / энтузиаст</div>
+
+        <div class="typing-container">
+            <span class="typing-text" id="typing-text"></span>
+            <span class="cursor"></span>
+        </div>
 
         <div class="bio-text">
             Привет! Меня зовут sh4rpy. 
@@ -237,22 +294,84 @@
             </a>
         </div>
 
+        <div class="clock" id="clock">--:--:--</div>
+
+        <div class="easter-egg" id="easter-egg">🔮 ТЫ НАШЁЛ ПАСХАЛКУ! СЛАВА ШАРПИ!</div>
+
     </div>
 
     <div class="footer">
         &copy; 2026 · sh4rpy
     </div>
 
+    <script src="https://unpkg.com/scrollreveal"></script>
     <script>
+        // Анимации
+        ScrollReveal().reveal('.logo', { delay: 200, duration: 800, distance: '30px', origin: 'top' });
+        ScrollReveal().reveal('.avatar-wrapper', { delay: 400, duration: 800, distance: '30px', origin: 'bottom' });
+        ScrollReveal().reveal('.name', { delay: 600, duration: 800, distance: '30px', origin: 'left' });
+        ScrollReveal().reveal('.bio-text', { delay: 800, duration: 800, distance: '30px', origin: 'right' });
+        ScrollReveal().reveal('.music-player', { delay: 1000, duration: 800, distance: '30px', origin: 'bottom' });
+        ScrollReveal().reveal('.social-links', { delay: 1200, duration: 800, distance: '30px', origin: 'bottom' });
+        ScrollReveal().reveal('.clock', { delay: 1400, duration: 800, distance: '30px', origin: 'bottom' });
+
+        // Часы
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Печатающийся текст
+        const phrases = [
+            "✦ разработчик / энтузиаст",
+            "✦ люблю тёмные темы",
+            "✦ пишу качественный код",
+            "✦ sh4rpy в сети"
+        ];
+        let phraseIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+        const typingElement = document.getElementById('typing-text');
+
+        function typeEffect() {
+            const currentPhrase = phrases[phraseIndex];
+            
+            if (isDeleting) {
+                typingElement.textContent = currentPhrase.substring(0, charIndex - 1);
+                charIndex--;
+            } else {
+                typingElement.textContent = currentPhrase.substring(0, charIndex + 1);
+                charIndex++;
+            }
+
+            let typeSpeed = isDeleting ? 50 : 100;
+
+            if (!isDeleting && charIndex === currentPhrase.length) {
+                typeSpeed = 2000;
+                isDeleting = true;
+            } else if (isDeleting && charIndex === 0) {
+                isDeleting = false;
+                phraseIndex = (phraseIndex + 1) % phrases.length;
+                typeSpeed = 500;
+            }
+
+            setTimeout(typeEffect, typeSpeed);
+        }
+        typeEffect();
+
+        // Дождь
         const canvas = document.getElementById('rain-canvas');
         const ctx = canvas.getContext('2d');
-
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
         const drops = [];
         const NUM_DROPS = 150;
-
         for (let i = 0; i < NUM_DROPS; i++) {
             drops.push({
                 x: Math.random() * canvas.width,
@@ -265,33 +384,39 @@
 
         function drawRain() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
             ctx.strokeStyle = 'rgba(200, 200, 255, 0.6)';
             ctx.lineWidth = 1;
-
             for (let drop of drops) {
                 ctx.beginPath();
                 ctx.moveTo(drop.x, drop.y);
                 ctx.lineTo(drop.x - 2, drop.y + drop.length);
                 ctx.stroke();
-                
                 drop.y += drop.speed;
-                
                 if (drop.y > canvas.height) {
                     drop.y = -20;
                     drop.x = Math.random() * canvas.width;
                 }
             }
-
             requestAnimationFrame(drawRain);
         }
-
         drawRain();
-
         window.addEventListener('resize', () => {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
         });
+
+        // Пасхалка
+        function activateEasterEgg() {
+            const egg = document.getElementById('easter-egg');
+            if (egg.style.display === 'block') {
+                egg.style.display = 'none';
+            } else {
+                egg.style.display = 'block';
+                setTimeout(() => {
+                    egg.style.display = 'none';
+                }, 5000);
+            }
+        }
     </script>
 
 </body>
