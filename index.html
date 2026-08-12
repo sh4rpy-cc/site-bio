@@ -34,7 +34,7 @@
             z-index: 10;
         }
 
-        #rain-canvas {
+        #effect-canvas {
             position: fixed;
             top: 0;
             left: 0;
@@ -61,6 +61,7 @@
             margin-bottom: 5px;
             cursor: pointer;
             transition: transform 0.3s ease;
+            user-select: none;
         }
 
         .logo span {
@@ -124,31 +125,115 @@
             margin-right: auto;
         }
 
-        audio {
-            width: 100%;
-            max-width: 400px;
+        .audio-player {
+            margin: 20px auto;
             background: #1a1a1a;
             border: 1px solid #3a3a3a;
-            border-radius: 8px;
-            outline: none;
-            margin: 0 auto;
-            display: block;
+            border-radius: 12px;
+            padding: 20px 25px;
+            max-width: 400px;
+            position: relative;
+            z-index: 5;
         }
 
-        audio::-webkit-media-controls-panel {
-            background: #1a1a1a;
-            border-radius: 8px;
+        .track-info {
+            text-align: center;
+            margin-bottom: 12px;
         }
 
-        audio::-webkit-media-controls-play-button {
-            background-color: #00BFFF;
-            border-radius: 50%;
-            color: #000;
-        }
-
-        audio::-webkit-media-controls-current-time-display,
-        audio::-webkit-media-controls-time-remaining-display {
+        .track-title {
+            font-weight: 700;
+            font-size: 14pt;
             color: #eee;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .track-artist {
+            font-size: 10pt;
+            color: #888;
+        }
+
+        .progress-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 4px;
+            background: #2a2a2a;
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #00BFFF;
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        .time-display {
+            font-size: 10pt;
+            color: #888;
+            font-family: 'Courier New', monospace;
+            min-width: 40px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .control-btn {
+            background: none;
+            border: none;
+            color: #eee;
+            font-size: 20pt;
+            cursor: pointer;
+            transition: transform 0.2s;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .control-btn:hover {
+            transform: scale(1.1);
+            color: #00BFFF;
+        }
+
+        .control-btn.play-btn {
+            font-size: 28pt;
+        }
+
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .volume-slider {
+            width: 60px;
+            height: 4px;
+            background: #2a2a2a;
+            border-radius: 4px;
+            cursor: pointer;
+            appearance: none;
+            outline: none;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #00BFFF;
+            cursor: pointer;
         }
 
         .social-links {
@@ -230,6 +315,15 @@
             to { text-shadow: 0 0 20px #00BFFF, 0 0 30px #00BFFF; }
         }
 
+        .easter-egg-2 {
+            display: none;
+            margin-top: 10px;
+            color: #ff6b6b;
+            font-size: 12pt;
+            font-weight: 400;
+            font-family: 'Courier New', monospace;
+        }
+
         .footer {
             text-align: center;
             padding: 30px 0;
@@ -250,11 +344,11 @@
 
     <div class="divide"></div>
 
-    <canvas id="rain-canvas"></canvas>
+    <canvas id="effect-canvas"></canvas>
 
     <div class="container">
         
-        <div class="logo" onclick="activateEasterEgg()">sh4r<span>py</span></div>
+        <div class="logo" onclick="switchEffect()">sh4r<span>py</span></div>
         <div class="subtitle">/ bio</div>
 
         <div class="avatar-wrapper">
@@ -270,17 +364,35 @@
         </div>
 
         <div class="bio-text">
-            Привет! Меня зовут sh4rpy. 
-            Я занимаюсь разработкой, люблю тёмные темы и качественный код. 
-            Этот сайт — моё небольшое пространство в интернете.
+            sh4rpy · разработчик · энтузиаст
         </div>
 
-        <div class="music-player" style="margin: 20px 0;">
-            <audio controls loop>
-                <source src="music/track.mp3" type="audio/mpeg">
-                Ваш браузер не поддерживает аудио.
-            </audio>
+        <div class="audio-player">
+            <div class="track-info">
+                <span class="track-title" id="trackTitle">атмосфера</span>
+                <span class="track-artist">sh4rpy</span>
+            </div>
+
+            <div class="progress-container">
+                <span class="time-display" id="currentTime">0:00</span>
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <span class="time-display" id="totalTime">0:00</span>
+            </div>
+
+            <div class="controls">
+                <button class="control-btn" id="prevBtn">⏮</button>
+                <button class="control-btn play-btn" id="playBtn">▶</button>
+                <button class="control-btn" id="nextBtn">⏭</button>
+                <div class="volume-container">
+                    <span style="color:#888;font-size:14pt;">🔊</span>
+                    <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.05" value="0.7">
+                </div>
+            </div>
         </div>
+
+        <audio id="audioPlayer" src="music/track.mp3" preload="metadata"></audio>
 
         <div class="social-links">
             <a href="https://github.com/sh4rpy-cc" target="_blank" class="social-btn">
@@ -297,6 +409,7 @@
         <div class="clock" id="clock">--:--:--</div>
 
         <div class="easter-egg" id="easter-egg">🔮 ТЫ НАШЁЛ ПАСХАЛКУ! СЛАВА ШАРПИ!</div>
+        <div class="easter-egg-2" id="easter-egg-2"></div>
 
     </div>
 
@@ -306,12 +419,12 @@
 
     <script src="https://unpkg.com/scrollreveal"></script>
     <script>
-        // Анимации
+        // Анимации появления
         ScrollReveal().reveal('.logo', { delay: 200, duration: 800, distance: '30px', origin: 'top' });
         ScrollReveal().reveal('.avatar-wrapper', { delay: 400, duration: 800, distance: '30px', origin: 'bottom' });
         ScrollReveal().reveal('.name', { delay: 600, duration: 800, distance: '30px', origin: 'left' });
         ScrollReveal().reveal('.bio-text', { delay: 800, duration: 800, distance: '30px', origin: 'right' });
-        ScrollReveal().reveal('.music-player', { delay: 1000, duration: 800, distance: '30px', origin: 'bottom' });
+        ScrollReveal().reveal('.audio-player', { delay: 1000, duration: 800, distance: '30px', origin: 'bottom' });
         ScrollReveal().reveal('.social-links', { delay: 1200, duration: 800, distance: '30px', origin: 'bottom' });
         ScrollReveal().reveal('.clock', { delay: 1400, duration: 800, distance: '30px', origin: 'bottom' });
 
@@ -326,13 +439,34 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        // Печатающийся текст
+        // ===== Печатающийся текст =====
         const phrases = [
-            "✦ разработчик / энтузиаст",
-            "✦ люблю тёмные темы",
-            "✦ пишу качественный код",
-            "✦ sh4rpy в сети"
+            "✦ код — это поэзия",
+            "✦ реальность — это всего лишь ещё одна программа",
+            "✦ ты — главный герой своей истории",
+            "✦ ничего не истинно, всё разрешено",
+            "✦ будущее уже написано... ты просто его читаешь",
+            "✦ тишина — тоже код",
+            "✦ sh4rpy в сети",
+            "✦ система стабильна",
+            "✦ соединение установлено",
+            "✦ режим полёта: активирован",
+            "✦ shadow mode: on",
+            "✦ я здесь, чтобы создавать",
+            "✦ skeet загружен успешно",
+            "✦ скучаю по 2018",
+            "✦ вруби музыку, это поможет",
+            "✦ ещё один день, ещё один коммит",
+            "✦ 999+ строк кода за сегодня",
+            "✦ кофе > компилятор",
+            "✦ кто читает этот текст — ты в матрице",
+            "✦ агенты уже близко",
+            "✦ следующая пасхалка скрыта в коде",
+            "✦ 42",
+            "✦ не ищи истину, создавай её",
+            "✦ все системы работают, sh4rpy",
         ];
+
         let phraseIndex = 0;
         let charIndex = 0;
         let isDeleting = false;
@@ -349,74 +483,306 @@
                 charIndex++;
             }
 
-            let typeSpeed = isDeleting ? 50 : 100;
+            let typeSpeed = isDeleting ? 40 : 80;
+            let pauseAfterComplete = 7000;
 
             if (!isDeleting && charIndex === currentPhrase.length) {
-                typeSpeed = 2000;
+                typeSpeed = pauseAfterComplete;
                 isDeleting = true;
             } else if (isDeleting && charIndex === 0) {
                 isDeleting = false;
                 phraseIndex = (phraseIndex + 1) % phrases.length;
-                typeSpeed = 500;
+                typeSpeed = 800;
             }
 
             setTimeout(typeEffect, typeSpeed);
         }
+
         typeEffect();
 
-        // Дождь
-        const canvas = document.getElementById('rain-canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        // ===== Кастомный плеер =====
+        const audio = document.getElementById('audioPlayer');
+        const playBtn = document.getElementById('playBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const progressFill = document.getElementById('progressFill');
+        const progressBar = document.getElementById('progressBar');
+        const currentTimeDisplay = document.getElementById('currentTime');
+        const totalTimeDisplay = document.getElementById('totalTime');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const trackTitle = document.getElementById('trackTitle');
 
-        const drops = [];
-        const NUM_DROPS = 150;
-        for (let i = 0; i < NUM_DROPS; i++) {
-            drops.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                speed: 4 + Math.random() * 6,
-                length: 10 + Math.random() * 15,
-                opacity: 0.3 + Math.random() * 0.4
-            });
-        }
+        const playlist = [
+            { src: 'music/track.mp3', title: 'Silence', artist: 'sneaky' }
+        ];
+        let currentTrack = 0;
 
-        function drawRain() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.strokeStyle = 'rgba(200, 200, 255, 0.6)';
-            ctx.lineWidth = 1;
-            for (let drop of drops) {
-                ctx.beginPath();
-                ctx.moveTo(drop.x, drop.y);
-                ctx.lineTo(drop.x - 2, drop.y + drop.length);
-                ctx.stroke();
-                drop.y += drop.speed;
-                if (drop.y > canvas.height) {
-                    drop.y = -20;
-                    drop.x = Math.random() * canvas.width;
-                }
+        function loadTrack(index) {
+            const track = playlist[index];
+            audio.src = track.src;
+            trackTitle.textContent = track.title;
+            audio.load();
+            if (!audio.paused) {
+                audio.play();
             }
-            requestAnimationFrame(drawRain);
         }
-        drawRain();
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+
+        function togglePlay() {
+            if (audio.paused) {
+                audio.play();
+                playBtn.textContent = '⏸';
+            } else {
+                audio.pause();
+                playBtn.textContent = '▶';
+            }
+        }
+
+        function updateProgress() {
+            const percent = (audio.currentTime / audio.duration) * 100;
+            progressFill.style.width = percent + '%';
+            currentTimeDisplay.textContent = formatTime(audio.currentTime);
+            totalTimeDisplay.textContent = formatTime(audio.duration);
+        }
+
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function setProgress(e) {
+            const rect = progressBar.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const percent = (x / rect.width) * 100;
+            audio.currentTime = (percent / 100) * audio.duration;
+        }
+
+        playBtn.addEventListener('click', togglePlay);
+        progressBar.addEventListener('click', setProgress);
+        audio.addEventListener('timeupdate', updateProgress);
+        audio.addEventListener('ended', () => {
+            playBtn.textContent = '▶';
         });
 
-        // Пасхалка
-        function activateEasterEgg() {
-            const egg = document.getElementById('easter-egg');
-            if (egg.style.display === 'block') {
-                egg.style.display = 'none';
-            } else {
-                egg.style.display = 'block';
-                setTimeout(() => {
-                    egg.style.display = 'none';
-                }, 5000);
+        volumeSlider.addEventListener('input', () => {
+            audio.volume = volumeSlider.value;
+        });
+
+        prevBtn.addEventListener('click', () => {
+            currentTrack = (currentTrack - 1 + playlist.length) % playlist.length;
+            loadTrack(currentTrack);
+            if (audio.paused) playBtn.textContent = '▶';
+            else playBtn.textContent = '⏸';
+        });
+
+        nextBtn.addEventListener('click', () => {
+            currentTrack = (currentTrack + 1) % playlist.length;
+            loadTrack(currentTrack);
+            if (audio.paused) playBtn.textContent = '▶';
+            else playBtn.textContent = '⏸';
+        });
+
+        loadTrack(0);
+        updateProgress();
+
+        // ===== Переключатель эффектов =====
+        const canvas = document.getElementById('effect-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let width = window.innerWidth;
+        let height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+
+        let currentEffect = 0;
+        let animationId = null;
+        const effects = ['rain', 'snow', 'sparks', 'fog'];
+        const effectNames = ['🌧️ Дождь', '❄️ Снег', '✨ Искры', '💨 Туман'];
+
+        let particles = [];
+
+        // Инициализация частиц для выбранного эффекта
+        function initEffect(effect) {
+            particles = [];
+            const num = 150;
+            for (let i = 0; i < num; i++) {
+                if (effect === 'rain') {
+                    particles.push({
+                        type: 'rain',
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        speed: 4 + Math.random() * 6,
+                        length: 10 + Math.random() * 15,
+                        opacity: 0.3 + Math.random() * 0.4
+                    });
+                } else if (effect === 'snow') {
+                    particles.push({
+                        type: 'snow',
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        radius: 2 + Math.random() * 4,
+                        speed: 1 + Math.random() * 2,
+                        wobble: 0.5 + Math.random() * 1.5
+                    });
+                } else if (effect === 'sparks') {
+                    const angle = Math.random() * Math.PI * 2;
+                    const vel = 1 + Math.random() * 3;
+                    particles.push({
+                        type: 'sparks',
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        vx: Math.cos(angle) * vel,
+                        vy: Math.sin(angle) * vel,
+                        radius: 1 + Math.random() * 3,
+                        life: 0.5 + Math.random() * 1.5
+                    });
+                } else if (effect === 'fog') {
+                    particles.push({
+                        type: 'fog',
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        radius: 100 + Math.random() * 200,
+                        speed: 0.3 + Math.random() * 0.5
+                    });
+                }
             }
         }
+
+        // Обновление и отрисовка кадра
+        function updateEffect(effect) {
+            ctx.clearRect(0, 0, width, height);
+            
+            if (effect === 'rain') {
+                ctx.strokeStyle = 'rgba(200, 200, 255, 0.6)';
+                ctx.lineWidth = 1;
+                for (let p of particles) {
+                    ctx.beginPath();
+                    ctx.moveTo(p.x, p.y);
+                    ctx.lineTo(p.x - 2, p.y + p.length);
+                    ctx.stroke();
+                    p.y += p.speed;
+                    if (p.y > height) {
+                        p.y = -20;
+                        p.x = Math.random() * width;
+                    }
+                }
+            } else if (effect === 'snow') {
+                for (let p of particles) {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                    ctx.fill();
+                    p.y += p.speed;
+                    p.x += Math.sin(p.y * 0.02) * p.wobble;
+                    if (p.y > height) {
+                        p.y = -10;
+                        p.x = Math.random() * width;
+                    }
+                }
+            } else if (effect === 'sparks') {
+                for (let p of particles) {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 200, 100, ${p.life / 2})`;
+                    ctx.fill();
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vx *= 0.99;
+                    p.vy *= 0.99;
+                    p.life -= 0.01;
+                    if (p.life <= 0 || p.x < 0 || p.x > width || p.y < 0 || p.y > height) {
+                        const angle = Math.random() * Math.PI * 2;
+                        const vel = 1 + Math.random() * 3;
+                        p.x = Math.random() * width;
+                        p.y = Math.random() * height;
+                        p.vx = Math.cos(angle) * vel;
+                        p.vy = Math.sin(angle) * vel;
+                        p.life = 0.5 + Math.random() * 1.5;
+                    }
+                }
+            } else if (effect === 'fog') {
+                for (let p of particles) {
+                    const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius);
+                    grad.addColorStop(0, 'rgba(200, 200, 255, 0.15)');
+                    grad.addColorStop(1, 'rgba(200, 200, 255, 0)');
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    p.x += p.speed;
+                    if (p.x > width) p.x = -p.radius;
+                }
+            }
+        }
+
+        // Главный цикл анимации
+        function animate() {
+            updateEffect(effects[currentEffect]);
+            animationId = requestAnimationFrame(animate);
+        }
+
+        // Переключение эффекта
+        function switchEffect() {
+            // Останавливаем старую анимацию
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            
+            currentEffect = (currentEffect + 1) % effects.length;
+            initEffect(effects[currentEffect]);
+            
+            // Показываем название эффекта на 3 секунды
+            const egg = document.getElementById('easter-egg');
+            egg.textContent = `✨ ${effectNames[currentEffect]}`;
+            egg.style.display = 'block';
+            setTimeout(() => {
+                egg.style.display = 'none';
+                egg.textContent = '🔮 ТЫ НАШЁЛ ПАСХАЛКУ! СЛАВА ШАРПИ!';
+            }, 3000);
+            
+            // Запускаем новую анимацию
+            animate();
+        }
+
+        // Инициализация при загрузке
+        initEffect('rain');
+        animate();
+
+        // Обработка ресайза
+        window.addEventListener('resize', () => {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            // Перезапускаем эффект с новыми размерами
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            initEffect(effects[currentEffect]);
+            animate();
+        });
+
+        // Тройной клик по аватарке
+        let avatarClicks = 0;
+        document.querySelector('.avatar-img').addEventListener('click', function() {
+            avatarClicks++;
+            if (avatarClicks === 3) {
+                const egg2 = document.getElementById('easter-egg-2');
+                egg2.textContent = "✦ DEEP WEB DETECTED. YOU ARE NOW SHADOW.";
+                egg2.style.display = 'block';
+                setTimeout(() => {
+                    egg2.style.display = 'none';
+                    avatarClicks = 0;
+                }, 4000);
+            }
+        });
+
+        console.log('%c🔥 SH4RPY IS WATCHING YOU', 'font-size: 30px; color: #00BFFF; font-weight: bold;');
+        console.log('%c🔮 Консольный лог загрузчика активирован.', 'color: #888;');
+        console.log('%c🔗 Все пасхалки спрятаны в коде. Ищи.', 'color: #888;');
     </script>
 
 </body>
