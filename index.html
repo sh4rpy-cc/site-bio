@@ -20,12 +20,10 @@
             color: #eee;
             background-color: #101010;
             min-height: 100vh;
-            /* Теперь можно скроллить */
             overflow-y: auto;
             scroll-behavior: smooth;
         }
 
-        /* Градиентная полоска фиксирована сверху */
         .divide {
             width: 100%;
             height: 3px;
@@ -36,7 +34,6 @@
             z-index: 10;
         }
 
-        /* Canvas для эффектов — фиксирован на весь экран */
         #effect-canvas {
             position: fixed;
             top: 0;
@@ -47,15 +44,14 @@
             pointer-events: none;
         }
 
-        /* Контент прокручивается поверх фона */
         .container {
             max-width: 600px;
             margin: 0 auto;
-            padding: 40px 20px 80px 20px; /* добавил отступ снизу для комфорта */
+            padding: 40px 20px 80px 20px;
             text-align: center;
             position: relative;
             z-index: 5;
-            min-height: 100vh; /* чтобы контент всегда занимал хотя бы экран */
+            min-height: 100vh;
         }
 
         .logo {
@@ -193,7 +189,8 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 20px;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
         .control-btn {
@@ -238,6 +235,94 @@
             border-radius: 50%;
             background: #00BFFF;
             cursor: pointer;
+        }
+
+        .download-btn {
+            background: none;
+            border: 1px solid #3a3a3a;
+            border-radius: 8px;
+            color: #eee;
+            font-size: 14pt;
+            padding: 6px 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .download-btn:hover {
+            border-color: #00BFFF;
+            color: #00BFFF;
+        }
+
+        .settings-trigger {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 24pt;
+            cursor: pointer;
+            transition: color 0.3s, transform 0.3s;
+            z-index: 6;
+            line-height: 1;
+        }
+
+        .settings-trigger:hover {
+            color: #00BFFF;
+            transform: rotate(90deg);
+        }
+
+        .settings-panel {
+            display: none;
+            position: absolute;
+            top: 60px;
+            right: 10px;
+            background: #1a1a1a;
+            border: 1px solid #3a3a3a;
+            border-radius: 12px;
+            padding: 20px;
+            width: 220px;
+            z-index: 6;
+            text-align: left;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+        }
+
+        .settings-panel.open {
+            display: block;
+        }
+
+        .settings-panel-title {
+            font-weight: 700;
+            color: #eee;
+            margin-bottom: 12px;
+            font-size: 12pt;
+            text-align: center;
+        }
+
+        .settings-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 10px;
+            background: none;
+            border: none;
+            color: #eee;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+            width: 100%;
+            font-family: 'Raleway', sans-serif;
+            font-size: 12pt;
+        }
+
+        .settings-option:hover {
+            background: #2a2a2a;
+            color: #00BFFF;
+        }
+
+        .settings-option.active {
+            color: #00BFFF;
         }
 
         .social-links {
@@ -374,7 +459,7 @@
         <div class="audio-player">
             <div class="track-info">
                 <span class="track-title" id="trackTitle">атмосфера</span>
-                <span class="track-artist">sh4rpy</span>
+                <span class="track-artist" id="trackArtist">sh4rpy</span>
             </div>
 
             <div class="progress-container">
@@ -393,10 +478,23 @@
                     <span style="color:#888;font-size:14pt;">🔊</span>
                     <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.05" value="0.7">
                 </div>
+                <button class="download-btn" id="downloadBtn">⬇</button>
             </div>
         </div>
 
         <audio id="audioPlayer" src="music/track.mp3" preload="metadata"></audio>
+
+        <!-- Шестерёнка в правом верхнем углу -->
+        <button class="settings-trigger" onclick="toggleSettings()">⚙️</button>
+
+        <!-- Панель настроек -->
+        <div class="settings-panel" id="settingsPanel">
+            <div class="settings-panel-title">✦ Эффекты</div>
+            <button class="settings-option active" onclick="setEffect(0)">🌧️ Дождь</button>
+            <button class="settings-option" onclick="setEffect(1)">❄️ Снег</button>
+            <button class="settings-option" onclick="setEffect(2)">✨ Искры</button>
+            <button class="settings-option" onclick="setEffect(3)">💨 Туман</button>
+        </div>
 
         <div class="social-links">
             <a href="https://github.com/sh4rpy-cc" target="_blank" class="social-btn">
@@ -515,9 +613,14 @@
         const totalTimeDisplay = document.getElementById('totalTime');
         const volumeSlider = document.getElementById('volumeSlider');
         const trackTitle = document.getElementById('trackTitle');
+        const trackArtist = document.getElementById('trackArtist');
+        const downloadBtn = document.getElementById('downloadBtn');
 
+        // ===== ПЛЕЙЛИСТ (добавляй свои треки сюда) =====
         const playlist = [
-            { src: 'music/track.mp3', title: 'Silence', artist: 'Sneaky' }
+            { src: 'music/track.mp3', title: 'атмосфера', artist: 'sh4rpy' },
+            { src: 'music/track2.mp3', title: 'закат', artist: 'sh4rpy' },
+            { src: 'music/track3.mp3', title: 'нейросети', artist: 'sh4rpy' }
         ];
         let currentTrack = 0;
 
@@ -525,10 +628,12 @@
             const track = playlist[index];
             audio.src = track.src;
             trackTitle.textContent = track.title;
+            trackArtist.textContent = track.artist;
             audio.load();
             if (!audio.paused) {
                 audio.play();
             }
+            updateProgress();
         }
 
         function togglePlay() {
@@ -587,8 +692,36 @@
             else playBtn.textContent = '⏸';
         });
 
+        // Кнопка скачать
+        downloadBtn.addEventListener('click', () => {
+            const track = playlist[currentTrack];
+            const a = document.createElement('a');
+            a.href = track.src;
+            a.download = track.title + '.mp3';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        });
+
         loadTrack(0);
         updateProgress();
+
+        // ===== Горячие клавиши =====
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                togglePlay();
+            }
+            if (e.code === 'KeyE') {
+                switchEffect();
+            }
+        });
+
+        // ===== Панель настроек =====
+        function toggleSettings() {
+            const panel = document.getElementById('settingsPanel');
+            panel.classList.toggle('open');
+        }
 
         // ===== Переключатель эффектов =====
         const canvas = document.getElementById('effect-canvas');
@@ -606,7 +739,6 @@
 
         let particles = [];
 
-        // Инициализация частиц для выбранного эффекта
         function initEffect(effect) {
             particles = [];
             const num = 150;
@@ -653,7 +785,6 @@
             }
         }
 
-        // Обновление и отрисовка кадра
         function updateEffect(effect) {
             ctx.clearRect(0, 0, width, height);
             
@@ -720,47 +851,50 @@
             }
         }
 
-        // Главный цикл анимации
         function animate() {
             updateEffect(effects[currentEffect]);
             animationId = requestAnimationFrame(animate);
         }
 
-        // Переключение эффекта
         function switchEffect() {
-            // Останавливаем старую анимацию
             if (animationId) {
                 cancelAnimationFrame(animationId);
                 animationId = null;
             }
-            
             currentEffect = (currentEffect + 1) % effects.length;
             initEffect(effects[currentEffect]);
-            
-            // Показываем название эффекта на 3 секунды
-            const egg = document.getElementById('easter-egg');
-            egg.textContent = `✨ ${effectNames[currentEffect]}`;
-            egg.style.display = 'block';
-            setTimeout(() => {
-                egg.style.display = 'none';
-                egg.textContent = '🔮 ТЫ НАШЁЛ ПАСХАЛКУ! СЛАВА ШАРПИ!';
-            }, 3000);
-            
-            // Запускаем новую анимацию
             animate();
+            updateActiveEffect();
         }
 
-        // Инициализация при загрузке
+        function setEffect(index) {
+            if (animationId) cancelAnimationFrame(animationId);
+            currentEffect = index;
+            initEffect(effects[currentEffect]);
+            animate();
+            updateActiveEffect();
+        }
+
+        function updateActiveEffect() {
+            const options = document.querySelectorAll('.settings-option');
+            options.forEach((el, i) => {
+                if (i === currentEffect) {
+                    el.classList.add('active');
+                } else {
+                    el.classList.remove('active');
+                }
+            });
+        }
+
         initEffect('rain');
         animate();
+        updateActiveEffect();
 
-        // Обработка ресайза
         window.addEventListener('resize', () => {
             width = window.innerWidth;
             height = window.innerHeight;
             canvas.width = width;
             canvas.height = height;
-            // Перезапускаем эффект с новыми размерами
             if (animationId) {
                 cancelAnimationFrame(animationId);
                 animationId = null;
