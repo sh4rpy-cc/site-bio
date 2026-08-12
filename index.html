@@ -20,20 +20,23 @@
             color: #eee;
             background-color: #101010;
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            /* Теперь можно скроллить */
+            overflow-y: auto;
+            scroll-behavior: smooth;
         }
 
+        /* Градиентная полоска фиксирована сверху */
         .divide {
             width: 100%;
             height: 3px;
             background: linear-gradient(to right, #1e5799 0%, #f300ff 50%, #e0ff00 100%);
             border-bottom: 1px solid #000;
-            position: relative;
+            position: sticky;
+            top: 0;
             z-index: 10;
         }
 
+        /* Canvas для эффектов — фиксирован на весь экран */
         #effect-canvas {
             position: fixed;
             top: 0;
@@ -44,14 +47,15 @@
             pointer-events: none;
         }
 
+        /* Контент прокручивается поверх фона */
         .container {
             max-width: 600px;
             margin: 0 auto;
-            padding: 40px 20px;
+            padding: 40px 20px 80px 20px; /* добавил отступ снизу для комфорта */
             text-align: center;
-            flex: 1;
             position: relative;
             z-index: 5;
+            min-height: 100vh; /* чтобы контент всегда занимал хотя бы экран */
         }
 
         .logo {
@@ -513,7 +517,7 @@
         const trackTitle = document.getElementById('trackTitle');
 
         const playlist = [
-            { src: 'music/track.mp3', title: 'Silence', artist: 'sneaky' }
+            { src: 'music/track.mp3', title: 'Silence', artist: 'Sneaky' }
         ];
         let currentTrack = 0;
 
